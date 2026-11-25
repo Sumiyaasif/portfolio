@@ -41,7 +41,7 @@ export type App = {
 
 export const apps: App[] = [
   {
-    slug: 'app-one',
+    slug: 'trivia-knowledge-booster',
     name: 'Trivia Knowledge Booster Quiz',
     tagline: 'Trivia Knowledge Booster: an Android quiz game I designed and built, with image and advanced trivia modes, daily streaks, a hint-coin reward system and seven unlockable themes, all playable offline.',
     color: '#3D2FD6',
@@ -57,7 +57,7 @@ export const apps: App[] = [
    result: `Trivia Knowledge Booster is live on Google Play and works fully offline, so it can be played anywhere, from commutes to family game nights. It covers more than a dozen categories, from science and history to technology and movies, and has a progression system that lets players move forward without pressure.`,
   },
   {
-    slug: 'app-two',
+    slug: 'quran-audio-reading-offline',
     name: 'Quran, Audio & Reading Offline',
     tagline: 'An Android app I built so people can read and listen to the full Quran offline, with a clean, distraction-free design and no data collection.',
     color: '#0F7B62',
