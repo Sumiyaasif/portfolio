@@ -1,1 +1,25 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="16" fill="#16181d"/><text x="32" y="41" font-family="system-ui,sans-serif" font-size="24" font-weight="800" fill="#f2f3ef" text-anchor="middle">YN</text></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <!-- Simplified version of the SA flower logo, made to stay clear at 16px -->
+  <g transform="translate(50 50)" stroke-linejoin="round">
+    <g fill="#2A9D8F" stroke="#2A9D8F" stroke-width="4">
+      <rect x="-32" y="-32" width="64" height="64"/>
+      <rect x="-32" y="-32" width="64" height="64" transform="rotate(45)"/>
+    </g>
+    <g fill="#FFFFFF">
+      <rect x="-26" y="-26" width="52" height="52"/>
+      <rect x="-26" y="-26" width="52" height="52" transform="rotate(45)"/>
+    </g>
+    <g fill="#1C1A6E">
+      <rect x="-21" y="-21" width="42" height="42"/>
+      <rect x="-21" y="-21" width="42" height="42" transform="rotate(45)"/>
+    </g>
+    <g fill="#F2B24C">
+      <rect x="-12" y="-12" width="24" height="24"/>
+      <rect x="-12" y="-12" width="24" height="24" transform="rotate(45)"/>
+    </g>
+    <g fill="#FFFFFF">
+      <rect x="-5.5" y="-5.5" width="11" height="11"/>
+      <rect x="-5.5" y="-5.5" width="11" height="11" transform="rotate(45)"/>
+    </g>
+  </g>
+</svg>
