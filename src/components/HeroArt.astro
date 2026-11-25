@@ -1,0 +1,186 @@
+---
+// Hero style B: your animated Procreate illustration.
+// Layers live in public/images/hero/:
+//   body.webp + three faces (worried, side glance, smile) drawn on the same canvas,
+//   so they line up exactly, plus flower.webp, reused for every flower.
+// The face cycles through the expressions; the flowers spin and float;
+// everything moves gently with the cursor (data-depth: 0 = still, 1 = moves most).
+import HeroBackground from './HeroBackground.astro';
+import { site, apps } from '../data/site';
+
+// Flowers around the character: position (% of the art box), size (% of its width),
+// spin direction and timing. Add, remove or move them freely.
+const flowers = [
+  { top: -4, left: 38, size: 15, depth: 0.7, spin: 1, delay: 0.9 },
+  { top: 10, left: 88, size: 11, depth: 1.0, spin: -1, delay: 1.1 },
+  { top: 66, left: -6, size: 13, depth: 0.85, spin: 1, delay: 1.3 },
+  { top: 8, left: -2, size: 8, depth: 0.55, spin: -1, delay: 1.5 },
+];
+---
+<section class="hero hero--art">
+  <HeroBackground />
+  <div class="wrap hero__inner">
+    <div class="hero__text">
+      <h1>I design and build mobile apps.</h1>
+      <p class="hero__lede">
+        I'm also an illustrator and graphic designer, so my apps look as good as they work. Two are live on <a href="https://play.google.com/store/apps/developer?id=CodeLady">Google Play</a>.
+      </p>
+      <div class="hero__actions">
+        <a class="btn btn--solid" href="#apps">See my apps</a>
+        <a class="btn btn--ghost" href="#design">See my art</a>
+      </div>
+    </div>
+
+    <figure class="art">
+      <div class="art__stage" role="img" aria-label="Animated illustration of a girl in a blue patterned dupatta whose expression changes from worried to a big smile, surrounded by geometric flowers">
+        <div class="art__layer art__char" data-depth="0.2">
+          <div class="char pop">
+            <img class="char__img" src="/images/hero/body.webp" alt="" width="1075" height="1250" />
+            <img class="char__img face" src="/images/hero/face-worried.webp" alt="" width="1075" height="1250" />
+            <img class="char__img face" src="/images/hero/face-side.webp" alt="" width="1075" height="1250" />
+            <img class="char__img face is-on" src="/images/hero/face-smile.webp" alt="" width="1075" height="1250" />
+          </div>
+        </div>
+
+        {flowers.map((f, i) => (
+          <div
+            class="art__layer flower"
+            data-depth={f.depth}
+            style={`top:${f.top}%;left:${f.left}%;width:${f.size}%;--delay:${f.delay}s;--spin:${f.spin};--float:${5 + i * 0.8}s`}
+          >
+            <img src="/images/hero/flower.png" alt="" width="85" height="85" />
+          </div>
+        ))}
+      </div>
+      <figcaption>Illustration by {site.name}</figcaption>
+
+    </figure>
+  </div>
+</section>
+
+<script>
+  const hero = document.querySelector<HTMLElement>('.hero--art');
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // Face expressions: worried → side glance → smile, then repeat.
+  // How long each one stays (ms):
+  const timings = [1400, 1400, 3200];
+  if (hero && !reduce) {
+    const faces = [...hero.querySelectorAll<HTMLImageElement>('.face')];
+    let i = 0;
+    const show = (n: number) => faces.forEach((f, k) => f.classList.toggle('is-on', k === n));
+    show(0);
+    const next = () => {
+      setTimeout(() => {
+        i = (i + 1) % faces.length;
+        show(i);
+        next();
+      }, timings[i]);
+    };
+    // start after the pop-in
+    setTimeout(next, 900);
+  }
+
+  // Cursor parallax
+  if (hero && !reduce && matchMedia('(pointer: fine)').matches) {
+    const layers = [...hero.querySelectorAll<HTMLElement>('[data-depth]')];
+    let tx = 0, ty = 0, x = 0, y = 0, running = false;
+    hero.addEventListener('pointermove', (e) => {
+      const r = hero.getBoundingClientRect();
+      tx = ((e.clientX - r.left) / r.width) * 2 - 1;
+      ty = ((e.clientY - r.top) / r.height) * 2 - 1;
+    });
+    hero.addEventListener('pointerleave', () => { tx = ty = 0; });
+    const tick = () => {
+      if (!running) return;
+      x += (tx - x) * 0.07; y += (ty - y) * 0.07;
+      for (const l of layers) {
+        const d = parseFloat(l.dataset.depth!);
+        l.style.translate = `${x * d * 30}px ${y * d * 22}px`;
+      }
+      requestAnimationFrame(tick);
+    };
+    new IntersectionObserver(([entry]) => {
+      running = entry.isIntersecting;
+      if (running) requestAnimationFrame(tick);
+    }).observe(hero);
+  }
+</script>
+
+<style>
+  .hero { position: relative; padding-block: clamp(3rem, 8vw, 6rem) clamp(3rem, 6vw, 5rem); overflow: hidden; }
+  .hero__inner { position: relative; z-index: 1; display: grid; grid-template-columns: 1.1fr 1fr; align-items: center; gap: 2rem; }
+  h1 { font-size: var(--step-4); font-weight: 800; max-width: 11ch; letter-spacing: -0.035em; }
+  .hero__lede { margin-top: 1.5rem; max-width: 40ch; font-size: var(--step-1); line-height: 1.45; color: var(--muted); }
+  .hero__actions { display: flex; gap: .75rem; flex-wrap: wrap; margin-top: 2rem; }
+  .hero__actions .btn--ghost { background: color-mix(in srgb, var(--bg) 70%, transparent); }
+
+  /* Hero button hover colors: change the values here */
+  .hero__actions .btn { transition: background .2s ease, color .2s ease, border-color .2s ease, transform .2s ease; }
+  .hero__actions .btn:hover { transform: translateY(-2px); }
+  .hero__actions .btn--solid:hover {   /* "See my apps" (filled) */
+    background: #FFFFFF;
+    border-color: #FFFFFF;
+    color: #121117;
+  }
+  .hero__actions .btn--ghost:hover {   /* "See my art" (outlined) */
+    background: var(--accent);         /* your gold */
+    border-color: var(--accent);
+    color: #121117;
+  }
+  .hero__actions .btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+
+  .art { margin: 0; }
+  .art__stage {
+    position: relative;
+    width: 100%;
+    max-width: 460px;
+    margin-inline: auto;
+    aspect-ratio: 1075 / 1250;
+  }
+  .art__layer { position: absolute; will-change: translate; }
+  .art__char { inset: 0; }
+
+  /* the character: body and faces stacked exactly on top of each other */
+  .char {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    /* soften the flat cuts at the bottom and right edge of the canvas */
+    -webkit-mask-image: linear-gradient(to bottom, #000 82%, transparent 100%), linear-gradient(to left, transparent 0, #000 9%);
+    -webkit-mask-composite: source-in;
+            mask-image: linear-gradient(to bottom, #000 82%, transparent 100%), linear-gradient(to left, transparent 0, #000 9%);
+            mask-composite: intersect;
+  }
+  .char__img { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  .face { opacity: 0; transition: opacity .18s ease; }
+  .face.is-on { opacity: 1; }
+
+  /* flowers: pop in, then spin slowly and float */
+  .flower { aspect-ratio: 1; }
+  .flower img {
+    width: 100%; height: 100%; display: block;
+    opacity: 0;
+    animation:
+      flower-in .7s cubic-bezier(.2,1.4,.4,1) var(--delay) forwards,
+      spin calc(18s + var(--float) * 2) linear var(--delay) infinite,
+      float var(--float) ease-in-out var(--delay) infinite;
+  }
+  @keyframes flower-in { from { opacity: 0; scale: .3; } to { opacity: 1; scale: 1; } }
+  @keyframes spin { to { rotate: calc(360deg * var(--spin)); } }
+  @keyframes float { 0%, 100% { translate: 0 0; } 50% { translate: 0 -12px; } }
+
+  figcaption { text-align: right; font-size: var(--step--1); color: var(--muted); margin-top: .5rem; }
+
+  /* character pops in on load */
+  .pop { opacity: 0; transform-origin: 50% 80%; animation: pop .8s cubic-bezier(.2,1.3,.4,1) .15s forwards; }
+  @keyframes pop { from { opacity: 0; scale: .92; } to { opacity: 1; scale: 1; } }
+
+  @media (max-width: 860px) {
+    .hero__inner { grid-template-columns: 1fr; }
+    .art__stage { max-width: 340px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .pop, .flower img { opacity: 1; animation: none; }
+  }
+</style>

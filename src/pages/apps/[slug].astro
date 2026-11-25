@@ -1,0 +1,85 @@
+---
+import Base from '../../layouts/Base.astro';
+import Phone from '../../components/Phone.astro';
+import { apps } from '../../data/site';
+
+export function getStaticPaths() {
+  return apps.map((app) => ({ params: { slug: app.slug }, props: { app } }));
+}
+const { app } = Astro.props;
+const visible = app.screenshots.slice(1);
+const shots = visible.length ? visible : [undefined, undefined, undefined];
+//const shots = app.screenshots.length ? app.screenshots : [undefined, undefined, undefined];
+const others = apps.filter((a) => a.slug !== app.slug);
+---
+<Base title={app.name} description={app.tagline}>
+  <article style={`--app:${app.color}`}>
+    <header class="cs-hero">
+      <div class="wrap">
+        <a class="back muted" href="/#apps">← All apps</a>
+        <h1>{app.name}</h1>
+        <p class="cs-tagline">{app.tagline}</p>
+        <dl class="cs-meta">
+          <div><dt>Role</dt><dd>{app.role}</dd></div>
+          <div><dt>Built with</dt><dd>{app.stack.join(', ')}</dd></div>
+          <div><dt>Year</dt><dd>{app.year}</dd></div>
+        </dl>
+        <a class="btn btn--solid cs-cta" href={app.playStore} target="_blank" rel="noopener">Get it on Google Play</a>
+      </div>
+    </header>
+
+    <div class="cs-shots">
+      <div class="wrap cs-shots__row">
+        {shots.map((src) => <Phone color={app.color} name={app.name} src={src} />)}
+      </div>
+    </div>
+
+    <div class="wrap cs-body">
+      <section><h2>The problem</h2><p>{app.problem}</p></section>
+      <section><h2>What I built</h2><p>{app.solution}</p></section>
+      <section><h2>The result</h2><p>{app.result}</p></section>
+    </div>
+
+    {others.length > 0 && (
+      <nav class="wrap cs-next" aria-label="More apps">
+        <p class="muted">Next app</p>
+        {others.map((o) => <a href={`/apps/${o.slug}/`}>{o.name}</a>)}
+      </nav>
+    )}
+  </article>
+</Base>
+
+<style>
+  .cs-hero { padding-block: clamp(3rem, 7vw, 5rem) 3rem; }
+  .back { text-decoration: none; font-size: var(--step--1); }
+  .back:hover { color: var(--ink); }
+  h1 { font-size: var(--step-4); font-weight: 800; margin-top: 1.5rem; letter-spacing: -0.035em; }
+  .cs-tagline { font-size: var(--step-1); margin-top: 1rem; max-width: 40ch; color: var(--muted); }
+  .cs-meta { display: flex; flex-wrap: wrap; gap: 1rem 3rem; margin: 2.5rem 0 0; }
+  .cs-meta dt { font-size: var(--step--1); color: var(--muted); }
+  .cs-meta dd { margin: .2rem 0 0; font-weight: 600; }
+  .cs-cta { margin-top: 2.5rem; background: var(--app); border-color: var(--app); color: white; }
+
+  .cs-shots { background: color-mix(in srgb, var(--app) 10%, var(--surface)); padding-block: clamp(2.5rem, 6vw, 4.5rem); }
+    .cs-shots__row {
+    display: flex;
+    gap: clamp(1rem, 3vw, 2.5rem);
+    justify-content: safe center;   /* centers only when everything fits */
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    padding-bottom: 1rem;           /* room for the scrollbar */
+    scrollbar-width: thin;
+  }
+  .cs-shots__row :global(.phone) {
+    flex: 0 0 min(300px, 78vw);
+    scroll-snap-align: center;
+  }
+
+  .cs-body { display: grid; gap: 3rem; padding-block: clamp(3.5rem, 8vw, 6rem); max-width: 46rem; }
+  .cs-body h2 { font-size: var(--step-2); font-weight: 800; }
+  .cs-body p { margin-top: .9rem; font-size: var(--step-1); line-height: 1.55; color: var(--muted); }
+
+  .cs-next { border-top: 1px solid var(--line); padding-block: 3rem 5rem; }
+  .cs-next a { display: block; margin-top: .4rem; font-size: var(--step-3); font-weight: 800; text-decoration: none; letter-spacing: -0.02em; }
+  .cs-next a:hover { color: var(--app); }
+</style>

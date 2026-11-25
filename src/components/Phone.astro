@@ -1,0 +1,80 @@
+---
+// A phone frame. Shows real screenshots if given, otherwise simple placeholder screens
+// tinted with the app's color, so the layout looks right before you add screenshots.
+// With `cycle`, it shows several screens that the hero script rotates through.
+interface Props { color: string; name: string; src?: string; srcs?: string[]; cycle?: boolean; class?: string }
+const { color, name, src, srcs = [], cycle = false, class: className } = Astro.props;
+const images = srcs.length ? srcs : src ? [src] : [];
+const shown = cycle ? images : images.slice(0, 1);
+const placeholders = cycle ? ['a', 'b', 'c'] : ['a'];
+---
+<div class:list={['phone', className]} style={`--app:${color}`}>
+  <div class="phone__screen" data-screens>
+    {shown.length > 0
+      ? shown.map((s, i) => (
+          <img src={s} alt={`${name} screenshot`} loading={i === 0 ? 'eager' : 'lazy'} class:list={['screen', { 'is-active': i === 0 }]} />
+        ))
+      : placeholders.map((v, i) => (
+          <div class:list={['screen', 'ph', `ph--${v}`, { 'is-active': i === 0 }]} role="img" aria-label={`${name} placeholder screen`}>
+            <div class="ph__status"><span></span><span></span></div>
+            <div class="ph__top"><div class="ph__icon"></div><div class="ph__title">{name}</div></div>
+            {v === 'a' && (
+              <>
+                <div class="ph__card"></div>
+                <div class="ph__row"><i></i><b></b></div>
+                <div class="ph__row"><i></i><b></b></div>
+                <div class="ph__row"><i></i><b></b></div>
+              </>
+            )}
+            {v === 'b' && (
+              <div class="ph__grid"><span></span><span></span><span></span><span></span><span></span><span></span></div>
+            )}
+            {v === 'c' && (
+              <>
+                <div class="ph__ring"></div>
+                <div class="ph__bars"><span style="--h:40%"></span><span style="--h:70%"></span><span style="--h:55%"></span><span style="--h:90%"></span><span style="--h:65%"></span></div>
+              </>
+            )}
+            <div class="ph__tabs"><span class="on"></span><span></span><span></span></div>
+          </div>
+        ))}
+  </div>
+</div>
+
+<style>
+  .phone {
+    width: 100%; max-width: 280px; aspect-ratio: 10 / 19;
+    padding: 6px; border-radius: 35px; background: var(--ink);
+    box-shadow: 0 30px 60px -25px color-mix(in srgb, var(--app) 55%, transparent);
+  }
+  .phone__screen { position: relative; width: 100%; height: 100%; border-radius: 30px; overflow: hidden; background: var(--surface); }
+
+  .screen { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transform: translateY(6%); transition: opacity .6s ease, transform .6s cubic-bezier(.2,.7,.2,1); }
+  .screen.is-active { opacity: 1; transform: none; }
+
+  .ph { display: flex; flex-direction: column; gap: 10px; padding: 14px 14px 12px; background: color-mix(in srgb, var(--app) 6%, white); }
+  .ph__status { display: flex; justify-content: space-between; }
+  .ph__status span { width: 26px; height: 6px; border-radius: 3px; background: color-mix(in srgb, var(--ink) 25%, transparent); }
+  .ph__top { display: flex; align-items: center; gap: 8px; margin-top: 6px; }
+  .ph__icon { width: 28px; height: 28px; border-radius: 9px; background: var(--app); flex: none; }
+  .ph__title { font-size: 12px; font-weight: 800; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .ph__card { height: 34%; border-radius: 18px; background: var(--app); position: relative; overflow: hidden; flex: none; }
+  .ph__card::after { content: ''; position: absolute; right: -20%; bottom: -30%; width: 75%; aspect-ratio: 1; border-radius: 50%; background: color-mix(in srgb, white 22%, transparent); }
+  .ph__row { display: flex; align-items: center; gap: 8px; padding: 8px; border-radius: 12px; background: white; }
+  .ph__row i { width: 22px; height: 22px; border-radius: 7px; background: color-mix(in srgb, var(--app) 20%, white); flex: none; }
+  .ph__row b { height: 7px; flex: 1; border-radius: 4px; background: color-mix(in srgb, var(--ink) 12%, transparent); }
+
+  .ph__grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .ph__grid span { aspect-ratio: 1; border-radius: 14px; background: color-mix(in srgb, var(--app) 18%, white); }
+  .ph__grid span:nth-child(1), .ph__grid span:nth-child(4) { background: var(--app); }
+
+  .ph__ring { width: 62%; aspect-ratio: 1; margin: 8px auto 4px; border-radius: 50%;
+    background: conic-gradient(var(--app) 0 72%, color-mix(in srgb, var(--app) 15%, white) 72% 100%);
+    mask: radial-gradient(circle, transparent 54%, #000 55%); -webkit-mask: radial-gradient(circle, transparent 54%, #000 55%); }
+  .ph__bars { display: flex; align-items: end; gap: 8px; height: 22%; padding: 10px; border-radius: 14px; background: white; }
+  .ph__bars span { flex: 1; height: var(--h); border-radius: 5px; background: color-mix(in srgb, var(--app) 70%, white); }
+
+  .ph__tabs { margin-top: auto; display: flex; justify-content: space-around; padding: 8px; border-radius: 14px; background: white; }
+  .ph__tabs span { width: 18px; height: 18px; border-radius: 6px; background: color-mix(in srgb, var(--ink) 12%, transparent); }
+  .ph__tabs span.on { background: var(--app); }
+</style>

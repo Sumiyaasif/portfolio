@@ -1,0 +1,285 @@
+---
+import Base from '../layouts/Base.astro';
+import Phone from './Phone.astro';
+import HeroArt from './HeroArt.astro';
+import { site, apps, design, web, skills } from '../data/site';
+
+interface Props { heroStyle?: 'showcase' | 'art' }
+const { heroStyle = site.heroStyle } = Astro.props;
+const categories = ['All', ...new Set(design.map((d) => d.category))];
+---
+<Base>
+ <HeroArt />
+
+  <!-- Apps -->
+  <section class="section" id="apps">
+    <div class="wrap">
+      <div class="section__head">
+        <h2>Apps</h2>
+        <p class="muted">From the first sketch to the Play Store listing: UX, interface, code and launch.</p>
+      </div>
+      <div class="apps">
+        {apps.map((app) => (
+          <article class="app" style={`--app:${app.color}`}>
+            <div class="app__visual">
+              <Phone color={app.color} name={app.name} src={app.screenshots[0]} />
+            </div>
+            <div class="app__body">
+              <p class="app__year muted">{app.year}</p>
+              <h3>{app.name}</h3>
+              <p class="app__tagline">{app.tagline}</p>
+              <dl class="app__meta">
+                <div><dt>Role</dt><dd>{app.role}</dd></div>
+                <div><dt>Built with</dt><dd>{app.stack.join(', ')}</dd></div>
+              </dl>
+              <div class="app__links">
+                <a class="btn btn--solid" href={`/apps/${app.slug}/`}>Read case study</a>
+                <a class="btn btn--ghost" href={app.playStore} target="_blank" rel="noopener">Google Play</a>
+              </div>
+            </div>
+          </article>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- Design & art -->
+  <section class="section" id="design">
+    <div class="wrap">
+      <div class="section__head">
+        <h2>Design & art</h2>
+        <div class="filters" role="group" aria-label="Filter work">
+          {categories.map((c, i) => (
+            <button type="button" class="filter" data-filter={c} aria-pressed={i === 0 ? 'true' : 'false'}>{c}</button>
+          ))}
+        </div>
+      </div>
+      <ul class="gallery">
+        {design.map((d) => (
+          <li class={`gallery__item gallery__item--${d.ratio}`} data-category={d.category}>
+            <button type="button" class="gallery__btn" data-src={d.image} data-title={d.title}>
+              <img src={d.image} alt={d.title} loading="lazy" />
+              <span class="gallery__cap"><span>{d.title}</span><span class="muted">{d.category}</span></span>
+            </button>
+          </li>
+        ))}
+      </ul>
+    </div>
+    <dialog class="lightbox" aria-label="Artwork preview">
+      <button type="button" class="lightbox__close" aria-label="Close">✕</button>
+      <img alt="" />
+      <p class="lightbox__title"></p>
+    </dialog>
+  </section>
+
+  <!-- Web -->
+  <section class="section" id="web">
+    <div class="wrap">
+      <div class="section__head">
+        <h2>Websites</h2>
+        <p class="muted">Fast, responsive sites built with plain code or modern frameworks.</p>
+      </div>
+      <ul class="webgrid">
+        {web.map((w) => (
+          <li>
+            <a class="webcard" href={w.href} target="_blank" rel="noopener">
+              <div class="webcard__frame">
+                <div class="webcard__bar" aria-hidden="true">
+                  <span></span><span></span><span></span>
+                  <em>{w.href.replace(/^https?:\/\//, '').replace(/\/$/, '')}</em>
+                </div>
+                <div class="webcard__shot">
+                  <img src={w.image} alt={`${w.name} homepage`} width="1680" height="800" loading="lazy" decoding="async" />
+                </div>
+              </div>
+              <div class="webcard__body">
+                <div class="webcard__top">
+                  <h3>{w.name}</h3>
+                  <span class="webcard__arrow" aria-hidden="true">↗</span>
+                </div>
+                <p class="muted">{w.description}</p>
+                <span class="webcard__stack">{w.stack}</span>
+              </div>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </section>
+
+  <!-- About + contact -->
+  <section class="section" id="about">
+    <div class="wrap about">
+      <div>
+        <h2>About</h2>
+        <p class="about__bio">
+          I'm a {site.role.toLowerCase()} based in {site.location}. Because I also draw and do graphic design,
+          I can take an app from the first idea and visual identity all the way to a published release.
+        </p>
+      </div>
+      <div class="skills">
+        {Object.entries(skills).map(([group, list]) => (
+          <div>
+            <h3>{group}</h3>
+            <ul>{list.map((s) => <li>{s}</li>)}</ul>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="contact" id="contact">
+    <div class="wrap contact__inner">
+      <h2>Have an app or a design project in mind?</h2>
+      <a class="contact__email" href={`mailto:${site.email}`}>{site.email}</a>
+    </div>
+  </section>
+</Base>
+
+<script>
+  // Filter for the Design & art gallery
+  const buttons = document.querySelectorAll<HTMLButtonElement>('.filter');
+  const items = document.querySelectorAll<HTMLElement>('.gallery__item');
+  buttons.forEach((btn) =>
+    btn.addEventListener('click', () => {
+      const f = btn.dataset.filter;
+      buttons.forEach((b) => b.setAttribute('aria-pressed', String(b === btn)));
+      items.forEach((it) => (it.hidden = f !== 'All' && it.dataset.category !== f));
+    })
+  );
+
+  // Lightbox
+  const dialog = document.querySelector<HTMLDialogElement>('.lightbox');
+  if (dialog) {
+    const img = dialog.querySelector('img')!;
+    const title = dialog.querySelector('.lightbox__title')!;
+    document.querySelectorAll<HTMLButtonElement>('.gallery__btn').forEach((b) =>
+      b.addEventListener('click', () => {
+        img.src = b.dataset.src!;
+        img.alt = b.dataset.title!;
+        title.textContent = b.dataset.title!;
+        dialog.showModal();
+      })
+    );
+    dialog.querySelector('.lightbox__close')!.addEventListener('click', () => dialog.close());
+    dialog.addEventListener('click', (e) => { if (e.target === dialog) dialog.close(); });
+  }
+</script>
+
+<style>
+  /* Apps */
+  .apps { display: grid; gap: clamp(1.5rem, 3vw, 2rem); }
+  .app {
+    display: grid; grid-template-columns: minmax(200px, 300px) 1fr; gap: clamp(2rem, 5vw, 4.5rem); align-items: center;
+    padding: clamp(1.75rem, 4vw, 3rem); border-radius: var(--radius-lg);
+    background: color-mix(in srgb, var(--app) 8%, var(--surface));
+  }
+  .app__visual { display: flex; justify-content: center; }
+  .app__year { font-size: var(--step--1); font-weight: 600; }
+  .app h3 { font-size: var(--step-3); font-weight: 800; margin-top: .35rem; }
+  .app__tagline { margin-top: .9rem; font-size: var(--step-1); max-width: 36ch; line-height: 1.4; }
+  .app__meta { margin: 1.75rem 0 0; display: grid; gap: .6rem; }
+  .app__meta div { display: grid; grid-template-columns: 7rem 1fr; gap: 1rem; padding-top: .6rem; border-top: 1px solid color-mix(in srgb, var(--app) 18%, var(--line)); }
+  .app__meta dt { color: var(--muted); font-size: var(--step--1); }
+  .app__meta dd { margin: 0; font-size: var(--step--1); font-weight: 500; }
+  .app__links { display: flex; flex-wrap: wrap; gap: .75rem; margin-top: 2rem; }
+  .app .btn--solid { background: var(--app); border-color: var(--app); color: white; }
+  .app .btn--solid:hover { background: var(--ink); border-color: var(--ink); }
+
+  /* Design & art */
+  .filters { display: flex; gap: .4rem; flex-wrap: wrap; }
+  .filter {
+    font: inherit; font-size: var(--step--1); font-weight: 500; cursor: pointer;
+    padding: .5rem 1rem; border-radius: 999px; border: 1px solid var(--line); background: transparent; color: var(--muted);
+  }
+  .filter:hover { color: var(--ink); border-color: var(--ink); }
+  .filter[aria-pressed='true'] { background: var(--ink); border-color: var(--ink); color: var(--bg); }
+
+  .gallery { list-style: none; margin: 0; padding: 0; columns: 3 260px; column-gap: 1.25rem; }
+  .gallery__item { break-inside: avoid; margin-bottom: 1.25rem; }
+  .gallery__item[hidden] { display: none; }
+  .gallery__btn { all: unset; display: block; width: 100%; cursor: zoom-in; border-radius: var(--radius-sm); }
+  .gallery__btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+  .gallery__btn img { width: 100%; border-radius: var(--radius-sm); object-fit: cover; transition: transform .35s ease; }
+  .gallery__item--tall img { aspect-ratio: 3 / 4; }
+  .gallery__item--square img { aspect-ratio: 1; }
+  .gallery__item--wide { column-span: all; }
+  .gallery__item--wide img { aspect-ratio: 16 / 9; }
+  .gallery__btn:hover img { transform: scale(.985); }
+  .gallery__cap { display: flex; justify-content: space-between; gap: 1rem; padding: .6rem .15rem 0; font-size: var(--step--1); font-weight: 500; }
+
+  .lightbox { border: 0; padding: 0; background: transparent; max-width: min(92vw, 900px); }
+    .lightbox::backdrop { background: rgba(1, 1, 19, 0.75); backdrop-filter: blur(6px); }
+  .lightbox img { max-height: 80vh; width: auto; margin-inline: auto; border-radius: var(--radius-sm); }
+    .lightbox__title { color: #fff; text-align: center; margin-top: .8rem; font-weight: 500; }
+  .lightbox__close {
+    position: fixed; top: 1rem; right: 1rem; width: 2.75rem; height: 2.75rem; border-radius: 50%;
+    border: 0; background: #fff; color: #121117; font-size: 1rem; cursor: pointer;
+  }
+
+  /* Web */
+  .webgrid {
+    list-style: none; margin: 0; padding: 0;
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr)); gap: clamp(1.25rem, 3vw, 2rem);
+  }
+  .webcard {
+    display: flex; flex-direction: column; height: 100%; text-decoration: none; color: inherit;
+    background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-lg); overflow: hidden;
+    transition: transform .25s ease, border-color .25s ease, box-shadow .25s ease;
+  }
+  .webcard:hover { transform: translateY(-4px); border-color: var(--accent); box-shadow: 0 14px 36px rgba(0, 0, 0, .35); }
+  .webcard:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+  .webcard__bar {
+    display: flex; align-items: center; gap: 6px; padding: .55rem .85rem;
+    background: color-mix(in srgb, var(--line) 60%, var(--surface)); border-bottom: 1px solid var(--line);
+  }
+  .webcard__bar span { width: 9px; height: 9px; border-radius: 50%; background: color-mix(in srgb, var(--muted) 35%, transparent); }
+  .webcard__bar em {
+    margin-left: .6rem; font-style: normal; font-size: .75rem; color: var(--muted);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .webcard__shot { overflow: hidden; }
+  .webcard__shot img {
+    display: block; width: 100%; height: auto; aspect-ratio: 21 / 10; object-fit: cover; object-position: top;
+    transition: transform .5s ease;
+  }
+  .webcard:hover .webcard__shot img { transform: scale(1.03); }
+  .webcard__body { display: flex; flex-direction: column; flex: 1; padding: 1.2rem 1.35rem 1.4rem; }
+  .webcard__top { display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; }
+  .webcard h3 { font-size: var(--step-1); font-weight: 600; }
+  .webcard__arrow { font-size: var(--step-1); color: var(--muted); transition: transform .25s ease, color .25s ease; }
+  .webcard:hover .webcard__arrow { color: var(--accent); transform: translate(3px, -3px); }
+  .webcard__body p { margin: .4rem 0 1rem; font-size: var(--step--1); line-height: 1.5; }
+  .webcard__stack {
+    align-self: flex-start; margin-top: auto; font-size: var(--step--1); padding: .3rem .75rem;
+    border: 1px solid var(--line); border-radius: 999px; color: var(--muted);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .webcard, .webcard__shot img, .webcard__arrow { transition: none; }
+    .webcard:hover, .webcard:hover .webcard__shot img, .webcard:hover .webcard__arrow { transform: none; }
+  }
+
+  /* About */
+  .about { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(2rem, 6vw, 5rem); }
+  .about h2 { font-size: var(--step-3); font-weight: 800; }
+  .about__bio { margin-top: 1.5rem; font-size: var(--step-1); line-height: 1.5; max-width: 38ch; }
+  .skills { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; align-content: start; }
+  .skills h3 { font-size: var(--step-0); font-weight: 600; padding-bottom: .6rem; border-bottom: 1.5px solid var(--ink); }
+  .skills ul { list-style: none; margin: .75rem 0 0; padding: 0; display: grid; gap: .4rem; color: var(--muted); font-size: var(--step--1); }
+
+  /* Contact */
+  .contact { background: var(--ink); color: var(--bg); padding-block: clamp(4rem, 10vw, 8rem); }
+  .contact h2 { font-size: var(--step-3); font-weight: 800; max-width: 18ch; }
+  .contact__email {
+    display: inline-block; margin-top: 2rem; font-size: var(--step-2); font-weight: 600; text-decoration: none;
+    color: var(--accent-soft); border-bottom: 2px solid currentColor; padding-bottom: .2rem; word-break: break-all;
+  }
+  .contact__email:hover { color: white; }
+
+  @media (max-width: 860px) {
+    .about { grid-template-columns: 1fr; }
+    .app { grid-template-columns: 1fr; }
+    .app__visual :global(.phone) { max-width: 220px; }
+    .skills { grid-template-columns: 1fr 1fr; }
+  }
+</style>
